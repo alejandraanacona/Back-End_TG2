@@ -38,7 +38,7 @@ public class UsuariosService {
         String email = user.getEmail();
         String subject = "Recuperación contraseña";
         String prebody = "Hola, has solicitado un cambio de contraseña, tu contraseña ha sido modificada por la siguiente contraseña provisional: ";
-        String attachment= "esto se debe borrar";
+        String attachment = "esto se debe borrar";
 
         String rand = "";
         String chars = "1234567890-=@#*+qwertyuiopQWERTYUOPasdfghjkASDFGHJKLzxcvbnm,.ZXCVBNM";
@@ -55,22 +55,22 @@ public class UsuariosService {
     }
 
 
-    public LoginMesage  loginMesage(DUsuarios dUsuarios) {
+    public LoginMesage loginMesage(DUsuarios dUsuarios) {
         Console.logInfo("entró al login", "va a buscar el código en base de datos");
         String msg = "";
         Usuarios usuarios = usuariosRepository.findByCodigoUv(dUsuarios.getCodigoUv());
-        Console.logInfo("repository", "datos"+ usuarios);
+        Console.logInfo("repository", "datos" + usuarios);
         if (usuarios != null) {
             String password = dUsuarios.getPassword();
-            Console.logInfo("password de la base de datos:"+ password, "la contraseña ");
+            Console.logInfo("password de la base de datos:" + password, "la contraseña ");
             String encodedPassword = usuarios.getPassword();
-            Console.logInfo("passwordencoder:"+ encodedPassword, "la contraseña encriptada");
+            Console.logInfo("passwordencoder:" + encodedPassword, "la contraseña encriptada");
             Boolean isPwdRight = passwordEncoder.matches(password, encodedPassword);
-            Console.logInfo("isPwdRight:"+ isPwdRight, "la contraseña");
+            Console.logInfo("isPwdRight:" + isPwdRight, "la contraseña");
             if (password != encodedPassword) {
                 Optional<Usuarios> usuariosOptional = usuariosRepository.findOneByCodigoUvAndPassword(dUsuarios.getCodigoUv(), password);
                 if (usuariosOptional.isPresent()) {
-                    Console.logInfo("si entra","al service");
+                    Console.logInfo("si entra", "al service");
                     return new LoginMesage("Login Success", true);
                 } else {
                     return new LoginMesage("Login Failed", false);
@@ -79,7 +79,7 @@ public class UsuariosService {
 
                 return new LoginMesage("password Not Match", false);
             }
-        }else {
+        } else {
             return new LoginMesage("Usuario not exits", false);
         }
 
