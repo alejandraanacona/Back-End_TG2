@@ -18,17 +18,18 @@ public class CorsConfig extends WebMvcConfigurerAdapter {
         @Override
         public void addCorsMappings(CorsRegistry registry) {
             registry.addMapping("/**")
-                    .allowedOrigins("http://localhost:8080")
+                    .allowedOrigins("http://localhost:8080","10.125.13.247:8080" )
                     .allowedMethods("GET", "POST", "PUT", "DELETE")
                     .allowCredentials(true);
         }
         @Bean
         public CorsWebFilter corsWebFilter() {
             CorsConfiguration corsConfig = new CorsConfiguration();
-            corsConfig.addAllowedOrigin("http://localhost:8080"); // Reemplaza esto con el origen correcto
+            corsConfig.addAllowedOrigin("http://localhost:8080/ws"); // Reemplaza esto con el origen correcto
 
             UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
             source.registerCorsConfiguration("/**", corsConfig);
+            source.registerCorsConfiguration("/ws/**", corsConfig);
 
             return new CorsWebFilter(source);
         }
