@@ -1,9 +1,8 @@
 package com.uv.deeplab.Controller;
 
 import com.uv.deeplab.Dto.DUsuarios;
-import com.uv.deeplab.Service.EmailService;
 import com.uv.deeplab.Service.LoginMesage;
-import com.uv.deeplab.Service.SupportFunctions.SubscriptorRos;
+import com.uv.deeplab.Service.SupportFunctions.SubscriptorsRos;
 import com.uv.deeplab.Service.UsuariosService;
 import com.uv.deeplab.config.Console;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +21,9 @@ public class UsuarioController {
 
     @Autowired
     UsuariosService usuariosService;
+
     @Autowired
-    private SubscriptorRos subscriptorRos;
+    SubscriptorsRos subscriptorRos;
 
     @PostMapping("/login/")
     public ResponseEntity<?> login(@RequestBody DUsuarios dUsuarios) throws IOException, SQLException, ExecutionException, InterruptedException {
