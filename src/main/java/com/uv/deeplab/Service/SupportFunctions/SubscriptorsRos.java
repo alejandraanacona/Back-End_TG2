@@ -1,8 +1,8 @@
 package com.uv.deeplab.Service.SupportFunctions;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.uv.deeplab.Dto.LidarData;
-import com.uv.deeplab.Dto.LidarDataSend;
+import com.uv.deeplab.Dto.*;
 import com.uv.deeplab.config.Console;
 
 import edu.wpi.rail.jrosbridge.Ros;
@@ -40,8 +40,8 @@ public class SubscriptorsRos {
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
 
     public void nodeSubscriptor() {
-        executorService.submit(() -> subscribeToTopic("localhost", "/topic2", "std_msgs/String", "/app/receive"));
-        executorService.submit(() -> subscribeToTopic("localhost", "/scan", "sensor_msgs/LaserScan", "/app/receive2"));
+        executorService.submit(() -> subscribeToTopic("/ctrl_pkg/servo_msg", "deepracer_interfaces_pkg/ServoCtrlMsg", "/app/receive"));
+        //executorService.submit(() -> subscribeToTopic("localhost", "/scan", "sensor_msgs/LaserScan", "/app/receive2"));
     }
    /*public void nodeSubscriptor() {
 
@@ -57,73 +57,84 @@ public class SubscriptorsRos {
        thread2.start();
 
    }*/
-
-    private void subscribeToTopic(String rosServer, String topicName, String Type, String senderPath) {
-        Ros ros = new Ros(rosServer);
+    public Ros ros;
+    public void connectToRos() {
+        ros = new Ros("localhost");
         ros.connect();
+        Console.logInfo("ROSBRIDGE SERVER", "CONNECTED");
+    }
+
+    private void subscribeToTopic( String topicName, String Type, String senderPath) {
 
         Topic echoBack = new Topic(ros, topicName, Type);
 
+        //----------------------------------------------LÓGICA PARA SUSCRIBIRSE-----------------------------------
         echoBack.subscribe(new TopicCallback() {
             @Override
             public void handleMessage(Message message) {
                try{
-                   LidarDataSend dataSend = processDataLidar(message.toString());
-                    Sender(dataSend, senderPath);
-                    System.out.println("Desde ROS :" + message.toString());
+                   if(topicName=="/scan") {
+                       LidarDataSend dataSend = processDataLidar(message.toString());
+                       Sender(dataSend, senderPath);
+                       Console.logInfo("SUSCRITO AL TOPICO",topicName);
+                       System.out.println("Desde ROS :" + message.toString());
+                   }else if (topicName.equals("/topic2")) {
+                       // Manejar el mensaje como String
+                       String msgString = extractDataFromJsonCamera(message.toString());
+                       SenderCam(msgString, senderPath);
+                       Console.logInfo("SUSCRITO AL TOPICO",topicName);
+
+                   } else {
+                       System.out.println("AQUI IRIA EL OTRO");
+                   }
+
                 } catch (ExecutionException | InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                processDataLidar(message.toString());
+                //processDataLidar(message.toString());
                 //extractDataFromJson(message.toString());
                 System.out.println("Desde ROS :" + message.toString());
 
             }
         });
-        /*echoBack.subscribe(new TopicCallback() {
+        //---------------------------------------LÓGICA PARA PUBLICAR-----------------------------------------------------
 
-            @Override
-            public void handleMessage(Message message) {
-                try {
-                    String msgString=extractDataFromJson(message.toString());
-                    Sender(msgString, "/app/receive");
-                    System.out.println("Desde ROS :" + message.toString());
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
-       Topic echoBack2 = new Topic(ros, "/topic2", "std_msgs/String");
 
-        echoBack2.subscribe(new TopicCallback() {
-            @Override
-            public void handleMessage(Message message) {
-                try {
-                    String msgString=extractDataFromJson(message.toString());
-                    Sender(msgString,"/app/receive2");
-                    System.out.println("Desde ROS :" + message.toString());
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });*/
-        // Keep the application alive to listen to messages
-        /*try {
-            Thread.sleep(200000); // Sleep for 10 seconds
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }*/
+        /*Message toSend = new Message("{\"angle\": -1.0 , \"throttle\": 0.5}");
+        System.out.println("MENSAJE QUE SE ENVIA:"+ toSend);
+        echoBack.publish(toSend);*/
+
 
         // Disconnect from ROS
         //ros.disconnect();
 
     }
 
-    private LidarData extractDataFromJson(String jsonMessage) {
+    public void publishToTopic(String topicName, String messageType, String jsonData) {
+        if (ros != null && ros.isConnected()) {
+            Topic topic = new Topic(ros, topicName, messageType);
+            Message message = new Message(jsonData);
+            topic.publish(message);
+        } else {
+            Console.logError("ROS Connection", "Not connected to ROS. Cannot publish to topic.");
+        }
+    }
+
+
+    public void ServoPublish (JoystickData mensaje) throws JsonProcessingException {
+        Console.logInfo("Si llea al servopublish", "con esto" + mensaje);
+        DataControl control = DataControlProcess(mensaje);
+        //Console.logInfo("ESTA ES LA DATA DE ENVIAR", ":"+ control);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonData = objectMapper.writeValueAsString(control); // data es una instancia de DataControl
+        System.out.println("ESTA ES LA DATA DE ENVIAR: " + jsonData);
+
+        publishToTopic("/ctrl_pkg/servo_msg","deepracer_interfaces_pkg/ServoCtrlMsg",jsonData);
+    }
+
+
+        private LidarData extractDataFromJson(String jsonMessage) {
 
         List<Double> rangeList = new ArrayList<>();
         List<Double> intensityList = new ArrayList<>();
@@ -283,17 +294,67 @@ public class SubscriptorsRos {
         return lidarDataSend;
     }
 
-        class ClientOneSessionHandler extends StompSessionHandlerAdapter {
-            //@Override
-            //public Type getPayLoadType(StompHeaders headers)
-            //{return HolaMundo.class;
-            //}
-            @Override
-            public void handleFrame(StompHeaders headers, Object payload) {
-            }
-
+    class ClientOneSessionHandler extends StompSessionHandlerAdapter {
+        //@Override
+        //public Type getPayLoadType(StompHeaders headers)
+        //{return HolaMundo.class;
+        //}
+        @Override
+        public void handleFrame(StompHeaders headers, Object payload) {
         }
 
+    }
+
+    //LOGICA PARA CAMARA
+    public void SenderCam(String mensaje, String destination) throws ExecutionException, InterruptedException {
+        Console.logInfo("ENTRO A HACER", "LA CONEXIÒN");
+        WebSocketClient client = new StandardWebSocketClient();
+
+        WebSocketStompClient stompClient = new WebSocketStompClient(client);
+        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+
+        ClientOneSessionHandler clientOneSessionHandler = new ClientOneSessionHandler();
+        ListenableFuture<StompSession> sessionAsync = stompClient.connect("ws://localhost:5430/ws", clientOneSessionHandler);
+        StompSession session = sessionAsync.get();
+        session.subscribe("/topic", clientOneSessionHandler);
+
+        //LidarDataSend updateMsg = modifyMessage(dataSend);
+        String updateMsg = mensaje;
+        session.send(destination, updateMsg);
+        Console.logInfo("SE ENVIÒ", "EL HOLA");
+        //Thread.sleep();
+    }
+
+    public String extractDataFromJsonCamera(String mensaje){
+        String mensajeReturn=mensaje;
+        return (mensajeReturn);
+    }
+
+    public DataControl DataControlProcess (JoystickData mensaje){
+        Console.logInfo("ENTRA A CONTROLDATA","PERO NO HACE NADA");
+        DataControl control = new DataControl();
+        Double sumaCuadrados =0.0;
+        Double Magnitud=0.0;
+        Double signo = 0.0;
+        Double angle= 0.0;
+        Integer angleNorma= 270; //Angulo de desplazamiento para la funciòn seno
+
+        Double VecX = mensaje.getVector().getX();
+        Double VecY = mensaje.getVector().getY();
+        Double Angle = mensaje.getAngle().getDegree();
+
+        signo = Math.signum(VecY);
+        sumaCuadrados += Math.pow(VecX,2)+ Math.pow(VecY,2);
+        Magnitud = Math.sqrt(sumaCuadrados)*signo;
+        control.setThrottle(Magnitud);
+
+        //ANGULOS A NORMALIZAR angle y 270
+
+        Angle = Math.sin(Math.toRadians(Angle)-Math.toRadians(angleNorma));
+        control.setAngle(Angle);
+
+        return (control);
+    }
 
 }
 

@@ -27,7 +27,7 @@ public class UsuarioController {
 
     @PostMapping("/login/")
     public ResponseEntity<?> login(@RequestBody DUsuarios dUsuarios) throws IOException, SQLException, ExecutionException, InterruptedException {
-        subscriptorRos.nodeSubscriptor();
+        subscriptorRos.connectToRos();
         Console.logInfo("Lo que llega", "usuario del front"+dUsuarios);
         LoginMesage loginMesage = usuariosService.loginMesage(dUsuarios);
         Console.logInfo("Si cuajo", "Entró a la función");
