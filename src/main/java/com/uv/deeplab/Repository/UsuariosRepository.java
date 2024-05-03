@@ -1,5 +1,6 @@
 package com.uv.deeplab.Repository;
 
+import com.uv.deeplab.Dto.DUsuarios;
 import com.uv.deeplab.Entities.Usuarios;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;

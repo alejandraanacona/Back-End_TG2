@@ -21,6 +21,7 @@ import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,8 +41,10 @@ public class SubscriptorsRos {
     private final ExecutorService executorService = Executors.newFixedThreadPool(2);
 
     public void nodeSubscriptor() {
-        executorService.submit(() -> subscribeToTopic("/ctrl_pkg/servo_msg", "deepracer_interfaces_pkg/ServoCtrlMsg", "/app/receive"));
-        //executorService.submit(() -> subscribeToTopic("localhost", "/scan", "sensor_msgs/LaserScan", "/app/receive2"));
+        //executorService.submit(() -> subscribeToTopic("/ctrl_pkg/servo_msg", "deepracer_interfaces_pkg/ServoCtrlMsg", "/app/receive"));
+        Console.logInfo("SEEEEEEEEEEEEEEEEEEEEEEEE", "CONNECTED");
+
+        executorService.submit(() -> subscribeToTopic("/scan", "sensor_msgs/LaserScan", "/app/receive3"));
     }
    /*public void nodeSubscriptor() {
 
@@ -61,18 +64,22 @@ public class SubscriptorsRos {
     public void connectToRos() {
         ros = new Ros("localhost");
         ros.connect();
+        nodeSubscriptor();
         Console.logInfo("ROSBRIDGE SERVER", "CONNECTED");
     }
 
     private void subscribeToTopic( String topicName, String Type, String senderPath) {
+        Console.logInfo("ENTRO AQUIIIIIIIIIIIIIIIIIIII", "CONNECTED");
 
         Topic echoBack = new Topic(ros, topicName, Type);
 
         //----------------------------------------------LÓGICA PARA SUSCRIBIRSE-----------------------------------
         echoBack.subscribe(new TopicCallback() {
+
             @Override
             public void handleMessage(Message message) {
                try{
+
                    if(topicName=="/scan") {
                        LidarDataSend dataSend = processDataLidar(message.toString());
                        Sender(dataSend, senderPath);
@@ -110,29 +117,64 @@ public class SubscriptorsRos {
 
     }
 
-    public void publishToTopic(String topicName, String messageType, String jsonData) {
-        if (ros != null && ros.isConnected()) {
-            Topic topic = new Topic(ros, topicName, messageType);
-            Message message = new Message(jsonData);
-            topic.publish(message);
-        } else {
-            Console.logError("ROS Connection", "Not connected to ROS. Cannot publish to topic.");
+    public void publishToTopic(String topicName, String messageType, DataControl control) {
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonData = objectMapper.writeValueAsString(control); // data es una instancia de DataControl
+
+            if (ros != null && ros.isConnected()) {
+                Topic topic = new Topic(ros, topicName, messageType);
+                Message message = new Message(jsonData);
+                try {
+                    topic.publish(message);
+
+                }catch (IllegalStateException e) {
+                    // Manejar la excepción (por ejemplo, reconectar)
+                    //connectToRos();
+                    //e.printStackTrace();
+                    if (control.getThrottle()==0.0 && control.getAngle() == 0.0){
+                        topic.publish(message);
+                    }
+                }
+            } else {
+                Console.logError("ROS Connection", "Not connected to ROS. Cannot publish to topic.");
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 
 
     public void ServoPublish (JoystickData mensaje) throws JsonProcessingException {
-        Console.logInfo("Si llea al servopublish", "con esto" + mensaje);
-        DataControl control = DataControlProcess(mensaje);
-        //Console.logInfo("ESTA ES LA DATA DE ENVIAR", ":"+ control);
+        Console.logInfo("Si llega al servopublish", "con esto " + mensaje);
+        DataControl control = new DataControl();
+
+        control = DataControlProcess(mensaje);
+
+        Console.logInfo("DATA A PUBLICAR FUNCION SERVOPUBLISH :", "" +control);
+
+        //System.out.println("ESTA ES LA DATA DE ENVIAR: " + jsonData);
+        //try {
+        //    Thread.sleep(5000);
+            publishToTopic("/ctrl_pkg/servo_msg","deepracer_interfaces_pkg/ServoCtrlMsg",control);
+        //} catch (InterruptedException e) {
+        //    throw new RuntimeException(e);
+        }
+
+
+  /*  public void ServoPublishStop(JoystickData mensaje) throws JsonProcessingException {
+        DataControl control = new DataControl();
+
+        control.setAngle(mensaje.getAngle2());
+        control.setThrottle(mensaje.getThrottle());
 
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonData = objectMapper.writeValueAsString(control); // data es una instancia de DataControl
         System.out.println("ESTA ES LA DATA DE ENVIAR: " + jsonData);
 
         publishToTopic("/ctrl_pkg/servo_msg","deepracer_interfaces_pkg/ServoCtrlMsg",jsonData);
-    }
-
+    }*/
 
         private LidarData extractDataFromJson(String jsonMessage) {
 
@@ -331,27 +373,28 @@ public class SubscriptorsRos {
     }
 
     public DataControl DataControlProcess (JoystickData mensaje){
-        Console.logInfo("ENTRA A CONTROLDATA","PERO NO HACE NADA");
+        //Console.logInfo("ENTRA A CONTROLDATA","PERO NO HACE NADA");
         DataControl control = new DataControl();
-        Double sumaCuadrados =0.0;
-        Double Magnitud=0.0;
-        Double signo = 0.0;
-        Double angle= 0.0;
-        Integer angleNorma= 270; //Angulo de desplazamiento para la funciòn seno
 
-        Double VecX = mensaje.getVector().getX();
-        Double VecY = mensaje.getVector().getY();
-        Double Angle = mensaje.getAngle().getDegree();
+            Double sumaCuadrados = 0.0;
+            Double Magnitud = 0.0;
+            Double signo = 0.0;
+            Double angle = 0.0;
+            Integer angleNorma = 270; //Angulo de desplazamiento para la funciòn seno
 
-        signo = Math.signum(VecY);
-        sumaCuadrados += Math.pow(VecX,2)+ Math.pow(VecY,2);
-        Magnitud = Math.sqrt(sumaCuadrados)*signo;
-        control.setThrottle(Magnitud);
+            Double VecX = mensaje.getVector().getX();
+            Double VecY = mensaje.getVector().getY();
+            Double Angle = mensaje.getAngle().getDegree();
 
-        //ANGULOS A NORMALIZAR angle y 270
+            signo = Math.signum(VecY);
+            sumaCuadrados += Math.pow(VecX, 2) + Math.pow(VecY, 2);
+            Magnitud = Math.sqrt(sumaCuadrados) * signo;
+            control.setThrottle(Magnitud);
 
-        Angle = Math.sin(Math.toRadians(Angle)-Math.toRadians(angleNorma));
-        control.setAngle(Angle);
+            //ANGULOS A NORMALIZAR angle y 270
+
+            Angle = Math.sin(Math.toRadians(Angle) - Math.toRadians(angleNorma));
+            control.setAngle(Angle);
 
         return (control);
     }

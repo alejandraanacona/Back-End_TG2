@@ -23,36 +23,44 @@ public class WebSocketController {
    /* @Autowired
     private SubscriptorsRos nodoEscucha;*/
     @MessageMapping("/receive")
-    @SendTo("/topic/messages")
+    //@SendTo("/topic/messages")
     public void joyControl(String mensaje) throws Exception {
-        Console.logInfo("entra", "Al menos aquì");
+        Console.logInfo("entra", "Al controller");
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
             JoystickData joystickData = objectMapper.readValue(mensaje, JoystickData.class);
-            subscriptorRos.ServoPublish(joystickData);
+            /*if (joystickData.getAngle2()==0.0 && joystickData.getThrottle()==0.0){
+                subscriptorRos.ServoPublishStop(joystickData);
+            }else {
+
+            }*/
+                subscriptorRos.ServoPublish(joystickData);
+
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
         //subscriptorRos.nodeSubscriptor();
 
-        System.out.println("Lo que llega y se envía de la camera: " +mensaje );
+        //System.out.println("Lo que llega y se envía de la camera: " +mensaje );
         //return (mensaje);
     }
 
 
+    @MessageMapping("/receive2")
+    @SendTo("/topic/messages2")
     //SE ENCUENTRA COMENTADO PORQUE ES PARA LA CAMARA
-    /*public String camera(String mensaje) throws Exception {
+    public String camera(String mensaje) throws Exception {
         Console.logInfo("entra","Al menos aquì");
         //nodoEscucha.nodeSubscriptor();
         //messageTemplate.convertAndSend("/topic/messages", mensaje);
         System.out.println("Lo que llega y se envía de la camera: " +mensaje );
 
         return(mensaje);
+    }
 
-    }*/
-    @MessageMapping("/receive2")
-    @SendTo("/topic/messages2")
+    @MessageMapping("/receive3")
+    @SendTo("/topic/messages3")
     public LidarDataSend lidar(LidarDataSend mensaje) throws Exception {
         Console.logInfo("entra","Al menos aquì");
         //nodoEscucha.nodeSubscriptor();
@@ -60,8 +68,8 @@ public class WebSocketController {
         System.out.println("Lo que llega y se envía del lidar: " +mensaje );
 
         return(mensaje);
-
     }
+
     public void saludar2(String message){
         System.out.println("Lo que llega :" + message);
     }

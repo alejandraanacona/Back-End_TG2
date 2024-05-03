@@ -5,7 +5,7 @@ import com.uv.deeplab.Service.SupportFunctions.SubscriptorsRos;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8081")
 @RequestMapping("/bridge")
 public class BridgeController {
 

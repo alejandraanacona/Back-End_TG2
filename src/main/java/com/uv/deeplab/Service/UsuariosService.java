@@ -3,11 +3,14 @@ package com.uv.deeplab.Service;
 import com.uv.deeplab.Dto.DUsuarios;
 import com.uv.deeplab.Entities.Usuarios;
 
+import com.uv.deeplab.Mapper.UsuariosMapper;
 import com.uv.deeplab.Repository.UsuariosRepository;
 import com.uv.deeplab.config.Console;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,10 +21,15 @@ import java.util.Random;
 @Service
 @Log4j2
 @RequiredArgsConstructor
+@ComponentScan
 public class UsuariosService {
 
+    private final UsuariosMapper mapper = Mappers.getMapper(UsuariosMapper.class);
     private final UsuariosRepository usuariosRepository;
     private final EmailService emailService;
+    //@Autowired
+
+
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -52,6 +60,15 @@ public class UsuariosService {
         emailService.sendEmailWithAttachment(email, body, subject, attachment);
 
         return usuariosRepository.save(user);
+    }
+
+    public CreateMessage create(DUsuarios dusuarios)throws MessagingException{
+        Console.logInfo("entra al service", "para crear usuario " +dusuarios);
+        Usuarios entity= mapper.fromDto(dusuarios);
+        entity.setPassword(dusuarios.getCodigoUv());
+        entity.setNumeroIdenti(dusuarios.getCodigoUv());
+        usuariosRepository.save(entity);
+        return new CreateMessage("Guardado Sucess", true);
     }
 
 

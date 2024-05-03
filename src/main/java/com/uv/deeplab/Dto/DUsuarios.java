@@ -1,13 +1,16 @@
 package com.uv.deeplab.Dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+
+import static javax.persistence.GenerationType.SEQUENCE;
 
 
 @Data
@@ -18,7 +21,9 @@ import java.io.Serializable;
 
 public class DUsuarios implements Serializable {
 
-    private Long id;
+
+
+    private Long userId;
 
     @Size(max = 50)
     private String codigoUv;
