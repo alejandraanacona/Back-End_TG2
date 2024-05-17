@@ -3,6 +3,7 @@ package com.uv.deeplab.Controller;
 import com.uv.deeplab.Dto.DUsuarios;
 import com.uv.deeplab.Service.CreateMessage;
 import com.uv.deeplab.Service.LoginMesage;
+import com.uv.deeplab.Service.SesionService;
 import com.uv.deeplab.Service.SupportFunctions.SubscriptorsRos;
 import com.uv.deeplab.Service.UsuariosService;
 import com.uv.deeplab.config.Console;
@@ -26,6 +27,8 @@ public class UsuarioController {
     @Autowired
     UsuariosService usuariosService;
 
+
+
     @Autowired
     SubscriptorsRos subscriptorRos;
 
@@ -34,7 +37,7 @@ public class UsuarioController {
         subscriptorRos.connectToRos();
         Console.logInfo("Lo que llega", "usuario del front"+dUsuarios);
         LoginMesage loginMesage = usuariosService.loginMesage(dUsuarios);
-        Console.logInfo("Si cuajo", "Entró a la función");
+        Console.logInfo("Si cuajo", "Entró a la función" + loginMesage);
         return ResponseEntity.ok(loginMesage);
     }
    @PostMapping("/save/")

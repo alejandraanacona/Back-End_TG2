@@ -1,8 +1,8 @@
+/*
 package com.uv.deeplab.Service.SupportFunctions;
 
-import com.uv.deeplab.Dto.DActividades;
-import com.uv.deeplab.Entities.Actividades;
-import com.uv.deeplab.Repository.ActividadesRepository;
+import com.uv.deeplab.Dto.DParametros;
+import com.uv.deeplab.Entities.Parametros;
 import com.uv.deeplab.Repository.ParametrosRepository;
 import com.uv.deeplab.Service.ParametrosService;
 import com.uv.deeplab.config.Console;
@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -21,7 +20,7 @@ public class Validations {
     private final ParametrosService parametrosService;
 
     @Autowired
-    private ActividadesRepository actividadesRepository;
+    private ParametrosRepository actividadesRepository;
 
     //Validación actLaser
     public boolean verifyIsActLaserIsConfigDefect(String actLaserFront){
@@ -72,7 +71,7 @@ public class Validations {
     }
 
     //Validación si es ConfigDefault o no
-    public boolean verifyConfirDefault(DActividades dActividades){
+    public boolean verifyConfirDefault(DParametros dActividades){
         Console.logInfo("ActividadesController", "Se obtiene la siguiente actividad del front: "+dActividades);
 
         Boolean isConfigDefault;
@@ -90,10 +89,10 @@ public class Validations {
     }
 
     //Validación para saber si la actividad ya esta registrada o no
-    public boolean verifyIfExitsActivity(DActividades dActividades){
+    public boolean verifyIfExitsActivity(DParametros dActividades){
         Boolean existsActivity;
-        Optional<Actividades> optionalActividades = actividadesRepository.findById(dActividades.getActId());
-        Actividades actividades = new Actividades();
+        Optional<Parametros> optionalActividades = actividadesRepository.findById(dActividades.getActId());
+        Parametros actividades = new Parametros();
 
         if(optionalActividades.isPresent()){
             existsActivity=true;
@@ -105,3 +104,4 @@ public class Validations {
 
 
 }
+*/

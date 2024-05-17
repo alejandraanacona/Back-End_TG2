@@ -14,17 +14,19 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DActividades implements Serializable {
+public class DParametros implements Serializable {
 
-    private Long actId;
+    private Long paramId;
 
-    private String configDefecto; //S=ConfiguracionDefecto, N=NO ConfiguracionDefecto
+    private Long userId;
 
-    private String actLaser;
+    private String paramLaser;
 
-    private String actCamara;
+    private String paramCamara;
 
-    private String actOdometria;
+    private Integer paramVelMax;
 
-    private String actMode;
+    private Integer paramVelAngMax;
+
+    private String paramMode;
 }

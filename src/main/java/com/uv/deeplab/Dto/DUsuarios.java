@@ -38,9 +38,6 @@ public class DUsuarios implements Serializable {
     private String email;
 
     @Size(max = 50)
-    private String numeroIdenti;
-
-    @Size(max = 50)
     private String programaAcademico;
 
     @Size(max = 50)

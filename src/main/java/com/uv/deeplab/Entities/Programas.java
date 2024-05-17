@@ -27,18 +27,19 @@ public class Programas {
     @GeneratedValue(generator = ID_SEQ, strategy = SEQUENCE)
     @SequenceGenerator(name = ID_SEQ, sequenceName = ID_SEQ, allocationSize = 1)
     @EqualsAndHashCode.Include
-    private Long progId;
+    private Long Id;
+
+    private Long userId;
+
+    private String nameFolder;
+
+    private String pkgName;
+
+    private String path;
+
+    private String parentId;
 
 
-    private String nombreProg;
 
-    private EtipoPrograma tipoPrograma;
-
-    private String directorio;
-
-    private String nombreArch;
-
-    @Lob
-    private Blob contProg;
 
 }

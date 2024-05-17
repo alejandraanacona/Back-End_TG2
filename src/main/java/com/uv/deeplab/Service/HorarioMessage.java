@@ -1,13 +1,11 @@
 package com.uv.deeplab.Service;
 
-
-import com.uv.deeplab.Entities.Usuarios;
 import com.uv.deeplab.config.Console;
 
-public class LoginMesage {
+public class HorarioMessage {
+
     String message;
     Boolean status;
-    Usuarios usuarios;
 
     public String getMessage() {
         return message;
@@ -25,18 +23,9 @@ public class LoginMesage {
         this.status = status;
     }
 
-    public Usuarios getUsuarios() {
-        return usuarios;
-    }
-
-    public void setUsuarios(Usuarios usuarios) {
-        this.usuarios = usuarios;
-    }
-
-    public LoginMesage(String message, Boolean status, Usuarios usuarios) {
-        Console.logInfo("Si cuajo", "Entró a la función login mesage");
+    public HorarioMessage(String message, Boolean status){
+        Console.logInfo("Entra", "a la función login mesage");
         this.message = message;
         this.status = status;
-        this.usuarios=usuarios;
     }
 }

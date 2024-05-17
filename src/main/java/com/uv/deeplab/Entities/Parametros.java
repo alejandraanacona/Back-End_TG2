@@ -1,6 +1,7 @@
 package com.uv.deeplab.Entities;
 
 import lombok.*;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
@@ -13,6 +14,7 @@ import static javax.persistence.GenerationType.SEQUENCE;
 @NoArgsConstructor
 @Entity
 @Table(name = "parametros")
+
 public class Parametros {
 
     public static final String ID_SEQ = "parametros_id_seq";
@@ -21,14 +23,19 @@ public class Parametros {
     @NotNull
     @GeneratedValue(generator = ID_SEQ, strategy = SEQUENCE)
     @SequenceGenerator(name = ID_SEQ, sequenceName = ID_SEQ, allocationSize = 1)
-    private Long parameterId;
+    @EqualsAndHashCode.Include
+    private Long paramId;
 
-    private String actLaser;
+    private Long userId;
 
-    private String actCamara;
+    private String paramLaser;
 
-    private String actOdometria;
+    private String paramCamara;
 
-    private String actMode;
+    private Integer paramVelMax;
+
+    private Integer paramVelAngMax;
+
+    private String paramMode;
 
 }

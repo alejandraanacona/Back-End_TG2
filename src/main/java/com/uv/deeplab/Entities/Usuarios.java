@@ -39,10 +39,7 @@ public class Usuarios {
     private String email;
 
     @Column(length = 50)
-    private String numeroIdenti;
-
-    @Column(length = 50)
-    private String programaAcademico;
+    private String rol;
 
     @Column(length = 50)
     private String password;

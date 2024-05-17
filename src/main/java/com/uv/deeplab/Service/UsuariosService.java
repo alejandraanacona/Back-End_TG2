@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.Random;
 
@@ -30,7 +31,8 @@ public class UsuariosService {
     //@Autowired
 
 
-
+    @Autowired
+    SesionService sesionService;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -66,9 +68,29 @@ public class UsuariosService {
         Console.logInfo("entra al service", "para crear usuario " +dusuarios);
         Usuarios entity= mapper.fromDto(dusuarios);
         entity.setPassword(dusuarios.getCodigoUv());
-        entity.setNumeroIdenti(dusuarios.getCodigoUv());
         usuariosRepository.save(entity);
-        return new CreateMessage("Guardado Sucess", true);
+
+        String username = dusuarios.getApellido();
+        //String password = dusuarios.getCodigoUv(); // Establecer la contraseña inicial igual al nombre de usuario
+       // String createUserCommand = "sudo useradd -m " + username + " -p " + password;
+        String createUserCommand = "mkdir -p /home/servidor/wssDeepLabUV/" + username +"_ws/src";
+        Console.logInfo("este es el comando" ,"para crear ws: "+createUserCommand);
+        try {
+            Process process = Runtime.getRuntime().exec(createUserCommand);
+            int exitCode = process.waitFor();
+            if (exitCode == 0) {
+                Console.logInfo("ws creado en Ubuntu", "Usuario: " + username);
+                return new CreateMessage("ws creado exitosamente y usuario uardado en la base de datos", true);
+            } else {
+                Console.logError("Error al crear ws en Ubuntu", "Código de salida: " + exitCode);
+                return new CreateMessage("Error al crear ws en Ubuntu", false);
+            }
+        } catch (IOException | InterruptedException e) {
+            Console.logError("Error al ejecutar comando en Ubuntu", e.getMessage());
+            return new CreateMessage("Error al crear ws en Ubuntu: " + e.getMessage(), false);
+        }
+
+        //return new CreateMessage("Guardado Sucess", true);
     }
 
 
@@ -88,18 +110,24 @@ public class UsuariosService {
                 Optional<Usuarios> usuariosOptional = usuariosRepository.findOneByCodigoUvAndPassword(dUsuarios.getCodigoUv(), password);
                 if (usuariosOptional.isPresent()) {
                     Console.logInfo("si entra", "al service");
-                    return new LoginMesage("Login Success", true);
+                    if (usuarios.getRol().equals("user")) {
+                        sesionService.registerSession(usuarios.getUserId());
+                        Console.logInfo("si guardó sesion:", "del user");
+                        return new LoginMesage("Login Success", true, usuarios);
+                    } else {
+                        sesionService.registerSession(usuarios.getUserId());
+                        return new LoginMesage("Login Success Admin", true,usuarios);
+                    }
                 } else {
-                    return new LoginMesage("Login Failed", false);
+                    return new LoginMesage("Login Failed", false, usuarios);
+                    }
+                } else {
+
+                 return new LoginMesage("password Not Match", false,usuarios);
+                    }
+                }else{
+                    return new LoginMesage("Usuario not exits", false, usuarios);
                 }
-            } else {
 
-                return new LoginMesage("password Not Match", false);
             }
-        } else {
-            return new LoginMesage("Usuario not exits", false);
         }
-
-
-    }
-}

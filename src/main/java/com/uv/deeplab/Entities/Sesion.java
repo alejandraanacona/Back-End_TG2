@@ -28,12 +28,13 @@ public class Sesion {
     @EqualsAndHashCode.Include
     private Long sesionId;
 
+    private Long userId;
+
     private Date fecha;
 
     private Time horaInicio;
 
     private Time horaFin;
 
-    private String configUser;
 
 }

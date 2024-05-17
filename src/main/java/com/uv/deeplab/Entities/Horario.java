@@ -4,37 +4,35 @@ import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-
-import java.io.Serializable;
-import java.sql.Blob;
 import java.sql.Time;
 import java.util.Date;
 
 import static javax.persistence.GenerationType.SEQUENCE;
+
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "videos")
+@Table(name = "horario")
+public class Horario {
 
-public class Videos implements Serializable {
-
-    public static final String ID_SEQ = "videos_id_seq";
+    public static final String ID_SEQ = "horario_id_seq";
 
     @Id
     @NotNull
     @GeneratedValue(generator = ID_SEQ, strategy = SEQUENCE)
     @SequenceGenerator(name = ID_SEQ, sequenceName = ID_SEQ, allocationSize = 1)
     @EqualsAndHashCode.Include
-    private Long videoId;
+    private Long horarioId;
 
-    private Date fechaCap;
+    private Long userId;
 
-    private Time horaCap;
+    private Date fecha;
 
-    @Lob
-    private Blob dataVideo;
+    private Time horaInicio;
+
+    private Time horaFin;
 
 }
