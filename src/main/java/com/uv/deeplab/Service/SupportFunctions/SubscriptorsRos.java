@@ -84,7 +84,7 @@ public class SubscriptorsRos {
                        LidarDataSend dataSend = processDataLidar(message.toString());
                        Sender(dataSend, senderPath);
                        Console.logInfo("SUSCRITO AL TOPICO",topicName);
-                       System.out.println("Desde ROS :" + message.toString());
+                       //System.out.println("Desde ROS :" + message.toString());
                    }else if (topicName.equals("/topic2")) {
                        // Manejar el mensaje como String
                        String msgString = extractDataFromJsonCamera(message.toString());

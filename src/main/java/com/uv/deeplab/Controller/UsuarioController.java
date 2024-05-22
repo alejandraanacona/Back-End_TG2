@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutionException;
 
 
 @RestController
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:8081")
 @RequestMapping("/user")
 @ComponentScan
 public class UsuarioController {

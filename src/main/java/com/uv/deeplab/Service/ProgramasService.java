@@ -6,26 +6,32 @@ import com.uv.deeplab.Repository.ProgramasRepository;
 import com.uv.deeplab.Service.SupportFunctions.FileSystemService;
 import com.uv.deeplab.config.Console;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Service
-@AllArgsConstructor
+@Log4j2
+@RequiredArgsConstructor
+@ComponentScan
 public class ProgramasService {
 
 
-    private ProgramasRepository programasRepository;
+    private final ProgramasRepository programasRepository;
 
     private FileSystemService fileSystemService;
 
 
-    public void createPkg (Programas programas){
+   /* public void createPkg (Programas programas){
         Console.logInfo("createPkg", "Se inicia solicitud de creación de pkg");
 
         String namePkg = programas.getPkgName();
 
-    }
+    }*/
 
 
     public Programas createUserFolder(Programas programas) throws IOException {
@@ -60,6 +66,11 @@ public class ProgramasService {
         // Eliminar la carpeta física en el servidor si es necesario
 
         programasRepository.delete(folder);
+    }
+
+    public String consultarPath(Long userid) throws Exception {
+        Programas programas = programasRepository.findPathById(userid);
+        return (programas.getPath());
     }
 
 }

@@ -31,10 +31,10 @@ CREATE SEQUENCE if not exists parametros_id_seq START WITH 1 INCREMENT BY 1;
 create table programas
 (
     id                      bigint primary key   not null,
-    userId                   varchar(50)    not null,
-    nameFolder               varchar(50)    not null,
+    user_id                   varchar(50)    not null,
+    name_folder               varchar(50)    not null,
     path                     varchar(50)    not null,
-    parentId                 varchar(50)    not null
+    parent_id                 varchar(50)    not null
     FOREIGN KEY (user_id) REFERENCES usuarios(user_id)
     );
 

@@ -30,6 +30,7 @@ public class WebSocketController {
 
         try {
             JoystickData joystickData = objectMapper.readValue(mensaje, JoystickData.class);
+            Console.logInfo("entra", "enfo joystick" +joystickData);
             /*if (joystickData.getAngle2()==0.0 && joystickData.getThrottle()==0.0){
                 subscriptorRos.ServoPublishStop(joystickData);
             }else {
@@ -65,7 +66,7 @@ public class WebSocketController {
         Console.logInfo("entra","Al menos aquì");
         //nodoEscucha.nodeSubscriptor();
         //messageTemplate.convertAndSend("/topic/messages", mensaje);
-        System.out.println("Lo que llega y se envía del lidar: " +mensaje );
+        //System.out.println("Lo que llega y se envía del lidar: " +mensaje );
 
         return(mensaje);
     }

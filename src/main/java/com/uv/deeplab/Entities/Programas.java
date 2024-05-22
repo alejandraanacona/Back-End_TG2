@@ -33,7 +33,7 @@ public class Programas {
 
     private String nameFolder;
 
-    private String pkgName;
+    //private String pkgName;
 
     private String path;
 
