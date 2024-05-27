@@ -389,7 +389,7 @@ public class SubscriptorsRos {
             signo = Math.signum(VecY);
             sumaCuadrados += Math.pow(VecX, 2) + Math.pow(VecY, 2);
             Magnitud = Math.sqrt(sumaCuadrados) * signo;
-            control.setThrottle(Magnitud);
+            control.setThrottle(Magnitud/1.8);
 
             //ANGULOS A NORMALIZAR angle y 270
 

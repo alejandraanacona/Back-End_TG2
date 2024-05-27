@@ -18,10 +18,16 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 public class WebSocketController {
 
+    private final  SimpMessagingTemplate template;
     @Autowired
     SubscriptorsRos subscriptorRos;
-   /* @Autowired
-    private SubscriptorsRos nodoEscucha;*/
+
+    public WebSocketController(SimpMessagingTemplate template) {
+        this.template = template;
+    }
+
+    /* @Autowired
+     private SubscriptorsRos nodoEscucha;*/
     @MessageMapping("/receive")
     //@SendTo("/topic/messages")
     public void joyControl(String mensaje) throws Exception {
@@ -63,6 +69,7 @@ public class WebSocketController {
     @MessageMapping("/receive3")
     @SendTo("/topic/messages3")
     public LidarDataSend lidar(LidarDataSend mensaje) throws Exception {
+
         Console.logInfo("entra","Al menos aquì");
         //nodoEscucha.nodeSubscriptor();
         //messageTemplate.convertAndSend("/topic/messages", mensaje);
@@ -71,8 +78,8 @@ public class WebSocketController {
         return(mensaje);
     }
 
-    public void saludar2(String message){
-        System.out.println("Lo que llega :" + message);
+    public void sendOutput(String message) {
+        this.template.convertAndSend("/topic/output", message);
     }
 
 }

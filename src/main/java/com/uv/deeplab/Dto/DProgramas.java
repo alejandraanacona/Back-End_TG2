@@ -21,13 +21,11 @@ public class DProgramas implements Serializable {
 
     private Long id;
 
-    private String nombreProg;
 
-    private EtipoPrograma tipoPrograma;
-
-    private String directorio;
+    private String path;
 
     private String nombreArch;
 
-    private Blob contProg;
+    private String fileContent;
+
 }

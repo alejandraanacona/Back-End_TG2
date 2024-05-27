@@ -28,5 +28,7 @@ public class DParametros implements Serializable {
 
     private Integer paramVelAngMax;
 
-    private String paramMode;
+    private Boolean paramMode;
+
+    private String nombrePkg;
 }

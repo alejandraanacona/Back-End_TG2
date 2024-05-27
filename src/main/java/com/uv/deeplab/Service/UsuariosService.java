@@ -1,6 +1,7 @@
 package com.uv.deeplab.Service;
 
 import com.uv.deeplab.Dto.DUsuarios;
+import com.uv.deeplab.Entities.Programas;
 import com.uv.deeplab.Entities.Usuarios;
 
 import com.uv.deeplab.Mapper.UsuariosMapper;
@@ -33,6 +34,10 @@ public class UsuariosService {
 
     @Autowired
     SesionService sesionService;
+
+    @Autowired
+    ProgramasService programasService;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -64,22 +69,38 @@ public class UsuariosService {
         return usuariosRepository.save(user);
     }
 
+    public Usuarios guardarUsuario(Usuarios usuarios){
+        usuariosRepository.save(usuarios);
+        return (usuarios);
+    };
+
     public CreateMessage create(DUsuarios dusuarios)throws MessagingException{
         Console.logInfo("entra al service", "para crear usuario " +dusuarios);
         Usuarios entity= mapper.fromDto(dusuarios);
         entity.setPassword(dusuarios.getCodigoUv());
-        usuariosRepository.save(entity);
+        guardarUsuario(entity);
 
         String username = dusuarios.getApellido();
-        //String password = dusuarios.getCodigoUv(); // Establecer la contraseña inicial igual al nombre de usuario
-       // String createUserCommand = "sudo useradd -m " + username + " -p " + password;
-        String createUserCommand = "mkdir -p /home/servidor/wssDeepLabUV/" + username +"_ws/src";
+
+
+        String path="/home/servidor/wssDeepLabUV/" + username +"_ws/src";
+
+        String createUserCommand = "mkdir -p "+path;
+
+        Programas programas= new Programas();
+        programas.setUserId(dusuarios.getUserId());
+        programas.setNameFolder(" ");
+        programas.setParentId("wssDeepLabUV");
+        programas.setPath(path);
+
         Console.logInfo("este es el comando" ,"para crear ws: "+createUserCommand);
         try {
             Process process = Runtime.getRuntime().exec(createUserCommand);
             int exitCode = process.waitFor();
             if (exitCode == 0) {
                 Console.logInfo("ws creado en Ubuntu", "Usuario: " + username);
+                programasService.savePath(programas);
+                Console.logInfo("se guardó el registro de","el path en base de datos");
                 return new CreateMessage("ws creado exitosamente y usuario uardado en la base de datos", true);
             } else {
                 Console.logError("Error al crear ws en Ubuntu", "Código de salida: " + exitCode);

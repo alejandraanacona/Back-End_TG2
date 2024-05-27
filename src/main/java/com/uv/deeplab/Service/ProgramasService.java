@@ -1,6 +1,7 @@
 package com.uv.deeplab.Service;
 
 import com.uv.deeplab.Dto.DParametros;
+import com.uv.deeplab.Dto.DProgramas;
 import com.uv.deeplab.Entities.Programas;
 import com.uv.deeplab.Repository.ProgramasRepository;
 import com.uv.deeplab.Service.SupportFunctions.FileSystemService;
@@ -11,6 +12,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Service;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -34,11 +36,7 @@ public class ProgramasService {
     }*/
 
 
-    public Programas createUserFolder(Programas programas) throws IOException {
-        // Crear la carpeta física en el servidor
-        String folderPath = "~/wssDeepLabUV" + programas.getUserId() + "/" + programas.getNameFolder();
-        fileSystemService.createFolder(folderPath);
-        programas.setPath(folderPath);
+    public Programas savePath(Programas programas) throws IOException {
 
         return programasRepository.save(programas);
     }
@@ -68,9 +66,18 @@ public class ProgramasService {
         programasRepository.delete(folder);
     }
 
-    public String consultarPath(Long userid) throws Exception {
+    public Programas consultarPath(Long userid) throws Exception {
         Programas programas = programasRepository.findPathById(userid);
-        return (programas.getPath());
+        return (programas);
     }
 
+    public String writeToFile(DProgramas dProgramas) {
+        try (FileWriter writer = new FileWriter(dProgramas.getPath())) {
+            writer.write(dProgramas.getFileContent());
+            return "File written successfully!";
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Error writing to file: " + e.getMessage();
+        }
+    }
 }
