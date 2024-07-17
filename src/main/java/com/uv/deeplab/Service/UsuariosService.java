@@ -74,21 +74,20 @@ public class UsuariosService {
         return (usuarios);
     };
 
-    public CreateMessage create(DUsuarios dusuarios)throws MessagingException{
-        Console.logInfo("entra al service", "para crear usuario " +dusuarios);
-        Usuarios entity= mapper.fromDto(dusuarios);
-        entity.setPassword(dusuarios.getCodigoUv());
-        guardarUsuario(entity);
+    public CreateMessage create(Usuarios usuarios)throws MessagingException{
+        Console.logInfo("entra al service", "para crear usuario " +usuarios);
+        usuarios.setPassword(usuarios.getCodigoUv());
+        guardarUsuario(usuarios);
 
-        String username = dusuarios.getApellido();
+        String username = usuarios.getApellido();
 
 
-        String path="/home/servidor/wssDeepLabUV/" + username +"_ws/src";
+        String path="/home/servidor/Documentos/wssDeepLabUV/" + username +"_ws/src";
 
         String createUserCommand = "mkdir -p "+path;
 
         Programas programas= new Programas();
-        programas.setUserId(dusuarios.getUserId());
+        programas.setUserId(usuarios.getUserId());
         programas.setNameFolder(" ");
         programas.setParentId("wssDeepLabUV");
         programas.setPath(path);
@@ -134,20 +133,20 @@ public class UsuariosService {
                     if (usuarios.getRol().equals("user")) {
                         sesionService.registerSession(usuarios.getUserId());
                         Console.logInfo("si guardó sesion:", "del user");
-                        return new LoginMesage("Login Success", true, usuarios);
+                        return new LoginMesage("Acesso Exitoso Estudiante", true, usuarios);
                     } else {
                         sesionService.registerSession(usuarios.getUserId());
-                        return new LoginMesage("Login Success Admin", true,usuarios);
+                        return new LoginMesage("Acceso Exitoso Administrador", true,usuarios);
                     }
                 } else {
-                    return new LoginMesage("Login Failed", false, usuarios);
+                    return new LoginMesage("Login Fallido", false, usuarios);
                     }
                 } else {
 
-                 return new LoginMesage("password Not Match", false,usuarios);
+                 return new LoginMesage("Constraseña no coinciden", false,usuarios);
                     }
                 }else{
-                    return new LoginMesage("Usuario not exits", false, usuarios);
+                    return new LoginMesage("Usuario no existe", false, usuarios);
                 }
 
             }

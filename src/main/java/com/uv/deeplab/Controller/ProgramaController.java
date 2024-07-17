@@ -95,8 +95,8 @@ public class ProgramaController {
         }
     }
     @PostMapping("/stop")
-    public ResponseEntity<?> stopPrograma()  {
-        parametrosService.stopRunningProcess();
+    public ResponseEntity<?> stopPrograma(@RequestBody DUsuarios usuarios) throws Exception  {
+        parametrosService.stopRunningProcess(usuarios.getUserId());
         return ResponseEntity.ok("stopped");
     }
 

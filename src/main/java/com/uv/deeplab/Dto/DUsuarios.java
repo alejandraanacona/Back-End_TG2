@@ -3,6 +3,7 @@ package com.uv.deeplab.Dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
+import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
@@ -37,8 +38,8 @@ public class DUsuarios implements Serializable {
     @Size(max = 50)
     private String email;
 
-    @Size(max = 50)
-    private String programaAcademico;
+    @Column(length = 50)
+    private String rol;
 
     @Size(max = 50)
     private String password;

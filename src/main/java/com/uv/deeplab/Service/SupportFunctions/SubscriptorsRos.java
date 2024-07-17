@@ -69,7 +69,7 @@ public class SubscriptorsRos {
     }
 
     private void subscribeToTopic( String topicName, String Type, String senderPath) {
-        Console.logInfo("ENTRO AQUIIIIIIIIIIIIIIIIIIII", "CONNECTED");
+        Console.logInfo("SE SUSCRIBE", "CONNECTED");
 
         Topic echoBack = new Topic(ros, topicName, Type);
 
@@ -83,7 +83,7 @@ public class SubscriptorsRos {
                    if(topicName=="/scan") {
                        LidarDataSend dataSend = processDataLidar(message.toString());
                        Sender(dataSend, senderPath);
-                       Console.logInfo("SUSCRITO AL TOPICO",topicName);
+                      // Console.logInfo("SUSCRITO AL TOPICO",topicName);
                        //System.out.println("Desde ROS :" + message.toString());
                    }else if (topicName.equals("/topic2")) {
                        // Manejar el mensaje como String
@@ -100,7 +100,7 @@ public class SubscriptorsRos {
                 }
                 //processDataLidar(message.toString());
                 //extractDataFromJson(message.toString());
-                System.out.println("Desde ROS :" + message.toString());
+              //  System.out.println("Desde ROS :" + message.toString());
 
             }
         });
@@ -147,17 +147,19 @@ public class SubscriptorsRos {
 
 
     public void ServoPublish (JoystickData mensaje) throws JsonProcessingException {
-        Console.logInfo("Si llega al servopublish", "con esto " + mensaje);
+        Console.logInfo("Entra al servopublish", "envia estos datos" + mensaje);
         DataControl control = new DataControl();
 
         control = DataControlProcess(mensaje);
 
-        Console.logInfo("DATA A PUBLICAR FUNCION SERVOPUBLISH :", "" +control);
+        Console.logInfo("Datos que publica:", "" +control);
 
         //System.out.println("ESTA ES LA DATA DE ENVIAR: " + jsonData);
         //try {
         //    Thread.sleep(5000);
-            publishToTopic("/ctrl_pkg/servo_msg","deepracer_interfaces_pkg/ServoCtrlMsg",control);
+        //publishToTopic("/ctrl_pkg/servo_msg","deepracer_interfaces_pkg/ServoCtrlMsg",control); EL QUE FUNCIONA HASTA HOY 04/06/2024
+        publishToTopic("/cmdvel_to_servo_pkg/servo_msg","deepracer_interfaces_pkg/ServoCtrlMsg",control);
+
         //} catch (InterruptedException e) {
         //    throw new RuntimeException(e);
         }
@@ -252,9 +254,9 @@ public class SubscriptorsRos {
         lidarDataSend.setRangeY(y);
         lidarDataSend.setIntensities(lidarData.getIntensities());
 
-        System.out.println("Valor de rangosx: " + lidarDataSend.getRangeX());
-        System.out.println("Valor de rangosy: " + lidarDataSend.getRangeY());
-        System.out.println("Valor de intensities: " + lidarDataSend.getIntensities());
+        //System.out.println("Valor de rangosx: " + lidarDataSend.getRangeX());
+        //System.out.println("Valor de rangosy: " + lidarDataSend.getRangeY());
+        //System.out.println("Valor de intensities: " + lidarDataSend.getIntensities());
 
 
 
@@ -314,7 +316,7 @@ public class SubscriptorsRos {
         return y;
     }
     public void Sender(LidarDataSend dataSend, String destination) throws ExecutionException, InterruptedException {
-        Console.logInfo("ENTRO A HACER", "LA CONEXIÒN");
+        //Console.logInfo("ENTRO A HACER", "LA CONEXIÒN");
         WebSocketClient client = new StandardWebSocketClient();
 
         WebSocketStompClient stompClient = new WebSocketStompClient(client);
@@ -327,7 +329,7 @@ public class SubscriptorsRos {
 
         LidarDataSend updateMsg = modifyMessage(dataSend);
         session.send(destination, updateMsg);
-        Console.logInfo("SE ENVIÒ", "EL HOLA");
+        //Console.logInfo("SE ENVIÒ", "EL HOLA");
         //Thread.sleep();
     }
 
@@ -373,7 +375,7 @@ public class SubscriptorsRos {
     }
 
     public DataControl DataControlProcess (JoystickData mensaje){
-        //Console.logInfo("ENTRA A CONTROLDATA","PERO NO HACE NADA");
+        Console.logInfo("ENTRA A CONTROLDATA","PERO NO HACE NADA"+ mensaje);
         DataControl control = new DataControl();
 
             Double sumaCuadrados = 0.0;

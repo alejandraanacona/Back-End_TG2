@@ -2,6 +2,7 @@ package com.uv.deeplab.Service;
 
 import com.uv.deeplab.Controller.WebSocketController;
 import com.uv.deeplab.Dto.DParametros;
+import com.uv.deeplab.Dto.DUsuarios;
 import com.uv.deeplab.Entities.Parametros;
 import com.uv.deeplab.Entities.Programas;
 import com.uv.deeplab.Repository.ParametrosRepository;
@@ -10,8 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class ParametrosService {
@@ -40,7 +45,7 @@ public class ParametrosService {
 
         programas = programasService.consultarPath(dParametros.getUserId());
         programas.setNameFolder(dParametros.getNombrePkg());
-        String path=programas.getPath()+"/src";
+        String path=programas.getPath();
 
         String nombrepkg = dParametros.getNombrePkg();
         String command = "ros2 pkg create --build-type ament_python --node-name my_node " + nombrepkg;
@@ -208,11 +213,48 @@ public class ParametrosService {
     }*/
     public Process runningProcess;
 
+    private Long processGroupPid;
+
+    public void killProcessesByPath(String path) {
+        try {
+            // Buscar procesos que coincidan con la ruta dada
+            ProcessBuilder psBuilder = new ProcessBuilder("ps", "-ef");
+            Process psProcess = psBuilder.start();
+
+            // Leer la salida del comando ps
+            BufferedReader psReader = new BufferedReader(new InputStreamReader(psProcess.getInputStream()));
+            String line;
+            List<Integer> pids = new ArrayList<>();
+            while ((line = psReader.readLine()) != null) {
+                if (line.contains(path)) {
+                    String[] parts = line.trim().split("\\s+");
+                    // El PID generalmente está en la segunda columna
+                    int pid = Integer.parseInt(parts[1]);
+                    pids.add(pid);
+                }
+            }
+
+            // Matar los procesos encontrados
+            for (int pid : pids) {
+                System.out.println("Killing process with PID: " + pid);
+                ProcessBuilder killBuilder = new ProcessBuilder("kill", "-9", String.valueOf(pid));
+                Process killProcess = killBuilder.start();
+                killProcess.waitFor();
+            }
+
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
     public void buildAndRunPackage(Long userId, String nombrepkg) throws Exception {
         Console.logInfo("ParametrosService", "Inicia la construcción y ejecución del paquete ROS 2");
 
         Programas programas = programasService.consultarPath(userId);
         String path = programas.getPath();
+        String pathLibreria = "/home/servidor/Documentos/ProyectoDeepLabUv/Backend_deep_lab_uv/aws-deepracer-interfaces-pkg";
 
         File directory = new File(path);
         if (!directory.exists() || !directory.isDirectory()) {
@@ -220,65 +262,79 @@ public class ParametrosService {
         }
 
         try {
-            // Crear un nuevo mapa de entorno basado en las variables de entorno existentes
             Map<String, String> environment = new HashMap<>(System.getenv());
             environment.put("AMENT_PREFIX_PATH", "/opt/ros/foxy");
             environment.put("PYTHONPATH", "/opt/ros/foxy/lib/python3.8/site-packages");
             environment.put("LD_LIBRARY_PATH", "/opt/ros/foxy/opt/yaml_cpp_vendor/lib:/opt/ros/foxy/opt/rviz_ogre_vendor/lib:/opt/ros/foxy/lib/x86_64-linux-gnu:/opt/ros/foxy/lib");
             environment.put("PATH", "/opt/ros/foxy/bin:" + environment.get("PATH"));
 
-            // Crear el script shell para ejecutar los comandos ROS 2
-            String scriptContent =
-                    "#!/bin/bash\n" +
-                            "source /opt/ros/foxy/setup.bash\n" +
-                            "source " + path + "/install/setup.bash\n" +
-                            "colcon build --packages-select " + nombrepkg + "\n" +
-                            "ros2 run " + nombrepkg + " my_node\n";
+            // Construir el comando
+            String[] command = {
+                    "/bin/bash", "-c",
+                    "source /opt/ros/foxy/setup.bash && " +
+                            "export ROS_DOMAIN_ID=27 && " +
+                            "source " + pathLibreria + "/install/setup.bash && " +
+                            "colcon build --packages-select " + nombrepkg + " && " +
+                            "source " + path + "/install/setup.bash && " +
+                            "ros2 run " + nombrepkg + " my_node"
+            };
 
-            File scriptFile = new File(directory, "execute_ros2.sh");
-            try (FileWriter writer = new FileWriter(scriptFile)) {
-                writer.write(scriptContent);
-            }
-
-            // Hacer que el script sea ejecutable
-            scriptFile.setExecutable(true);
-
-            // Ejecutar el script shell
-            ProcessBuilder processBuilder = new ProcessBuilder("./execute_ros2.sh");
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
             processBuilder.directory(directory);
-            processBuilder.redirectErrorStream(true); // Redirigir errores al mismo flujo de salida
-            runningProcess = processBuilder.start(); // Guardar la referencia al proceso en ejecución
+            processBuilder.environment().putAll(environment);
+            processBuilder.redirectErrorStream(true);
 
-            // Leer la salida del proceso
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(runningProcess.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    Console.logInfo("Output from ROS2 node", line);
-                    webSocketController.sendOutput(line); // Enviar la salida al frontend
+            runningProcess = processBuilder.start();
+
+            Executors.newSingleThreadExecutor().submit(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(runningProcess.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        Console.logInfo("Output from ROS2 node", line);
+                        webSocketController.sendOutput(line); // Enviar la salida al frontend
+                    }
+                } catch (IOException e) {
+                    Console.logError("Error al leer la salida del proceso ROS2", e.getMessage());
+                    webSocketController.sendOutput("ERROR: " + e.getMessage());
                 }
-            } catch (IOException e) {
-                Console.logError("Error al leer la salida del proceso ROS2", e.getMessage());
-                webSocketController.sendOutput("ERROR: " + e.getMessage());
-            }
-
-            // Esperar a que el proceso termine (se ha eliminado esta parte para permitir la terminación manual)
-
+            });
         } catch (IOException e) {
             Console.logError("Error al ejecutar comando en Ubuntu", e.getMessage());
             webSocketController.sendOutput("ERROR: " + e.getMessage());
             throw e;
         }
+
     }
 
+
     // Método para detener el proceso
-    public void stopRunningProcess() {
+    public void stopRunningProcess(Long userId) throws Exception {
+
+        Programas programas = programasService.consultarPath(userId);
+        String path = programas.getPath();
+
         if (runningProcess != null) {
-            Console.logInfo("Deteniendo el proceso en ejecución.","del proyecto");
-            runningProcess.destroy();
-            runningProcess = null; // Eliminar la referencia al proceso detenido
-            webSocketController.sendOutput("Stop proceso");
+            Console.logInfo("Deteniendo el proceso en ejecución.", "del proyecto");
+            try {
+                // Intentar destruir el proceso normalmente
+                runningProcess.destroy();
+                if (!runningProcess.waitFor(5, TimeUnit.SECONDS)) {
+                    runningProcess.destroyForcibly();
+                }
+                runningProcess = null; // Eliminar la referencia al proceso detenido
+                webSocketController.sendOutput("Stop proceso");
+
+                // Asegurarse de matar todos los procesos relacionados con el directorio de trabajo
+                //String pathProcess = "/home/servidor/Documentos/wssDeepLabUV/vaneanac"; // Ajustar la ruta según sea necesario
+                killProcessesByPath(path);
+
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                Console.logError("Error al detener el proceso ROS2", e.getMessage());
+                webSocketController.sendOutput("ERROR: " + e.getMessage());
+            }
         } else {
-            Console.logInfo("No hay ningún proceso en ejecución que detener.","del proyecto");
+            Console.logInfo("No hay ningún proceso en ejecución que detener.", "del proyecto");
         }
     }
 

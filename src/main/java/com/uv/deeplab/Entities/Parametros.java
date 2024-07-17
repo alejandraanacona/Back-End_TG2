@@ -32,9 +32,9 @@ public class Parametros {
 
     private String paramCamara;
 
-    private Integer paramVelMax;
+    private Float paramVelMax;
 
-    private Integer paramVelAngMax;
+    private Float paramVelAngMax;
 
     private Boolean paramMode;
 

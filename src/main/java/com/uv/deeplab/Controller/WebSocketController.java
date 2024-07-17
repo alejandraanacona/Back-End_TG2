@@ -70,7 +70,7 @@ public class WebSocketController {
     @SendTo("/topic/messages3")
     public LidarDataSend lidar(LidarDataSend mensaje) throws Exception {
 
-        Console.logInfo("entra","Al menos aquì");
+        //Console.logInfo("entra","Al menos aquì");
         //nodoEscucha.nodeSubscriptor();
         //messageTemplate.convertAndSend("/topic/messages", mensaje);
         //System.out.println("Lo que llega y se envía del lidar: " +mensaje );

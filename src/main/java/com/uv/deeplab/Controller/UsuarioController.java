@@ -1,6 +1,7 @@
 package com.uv.deeplab.Controller;
 
 import com.uv.deeplab.Dto.DUsuarios;
+import com.uv.deeplab.Entities.Usuarios;
 import com.uv.deeplab.Service.CreateMessage;
 import com.uv.deeplab.Service.LoginMesage;
 import com.uv.deeplab.Service.SesionService;
@@ -41,9 +42,9 @@ public class UsuarioController {
         return ResponseEntity.ok(loginMesage);
     }
    @PostMapping("/save/")
-   public ResponseEntity<?> register(@RequestBody DUsuarios dUsuarios) throws IOException, SQLException, ExecutionException, InterruptedException, MessagingException {
-        Console.logInfo("usuarioService", "usuario que viene del front: "+dUsuarios);
-        CreateMessage createMessage = usuariosService.create(dUsuarios);
+   public ResponseEntity<?> register(@RequestBody Usuarios usuarios) throws IOException, SQLException, ExecutionException, InterruptedException, MessagingException {
+        Console.logInfo("usuarioService", "usuario que viene del front: "+usuarios);
+        CreateMessage createMessage = usuariosService.create(usuarios);
         Console.logInfo("Guardó el dato", "Exitosamente");
         return ResponseEntity.ok(createMessage);
     }
